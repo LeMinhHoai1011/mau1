@@ -44,6 +44,20 @@ class UserDAO {
     return null;
   }
 
+  // Read by phone
+  Future<UserModel?> getUserByPhone(String phone) async {
+    final db = await database.database;
+    final maps = await db.query(
+      'users',
+      where: 'phone = ?',
+      whereArgs: [phone],
+    );
+    if (maps.isNotEmpty) {
+      return UserModel.fromMap(maps.first);
+    }
+    return null;
+  }
+
   // Get all users
   Future<List<UserModel>> getAllUsers() async {
     final db = await database.database;

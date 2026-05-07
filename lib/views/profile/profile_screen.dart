@@ -1,13 +1,22 @@
-// Profile Screen
+// Profile Screen with Logout functionality
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_strings.dart';
+import '../../providers/auth_provider.dart';
+import '../auth/login_screen.dart';
+import 'edit_profile_screen.dart';
+import '../settings/settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.currentUser;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF3F4F6),
       body: CustomScrollView(
         slivers: [
           // Header
@@ -20,7 +29,10 @@ class ProfileScreen extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+                    colors: [
+                      AppColors.primary, 
+                      AppColors.primary.withValues(alpha: 0.8)
+                    ],
                   ),
                 ),
                 child: Column(
@@ -28,20 +40,22 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 50,
-                      backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=1'),
+                      backgroundImage: user?.profileImageUrl != null
+                          ? NetworkImage(user!.profileImageUrl!)
+                          : const NetworkImage('https://i.pravatar.cc/150?img=1'),
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Text(
-                      'Nguyễn Văn A',
-                      style: TextStyle(
+                      user?.name ?? 'Người dùng',
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                     Text(
-                      'sinhvien@daihoc.edu.vn',
-                      style: TextStyle(
+                      user?.email ?? '',
+                      style: const TextStyle(
                         fontSize: 12,
                         color: Colors.white70,
                       ),
@@ -50,14 +64,26 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-            actions: [
+actions: [
+              // ✅ Edit Profile button
               IconButton(
-                icon: Icon(Icons.edit),
-                onPressed: () {},
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => EditProfileScreen()),
+                  );
+                },
               ),
+              // ✅ Settings button
               IconButton(
-                icon: Icon(Icons.settings),
-                onPressed: () {},
+                icon: const Icon(Icons.settings),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => SettingsScreen()),
+                  );
+                },
               ),
             ],
           ),
@@ -65,13 +91,13 @@ class ProfileScreen extends StatelessWidget {
           // Content
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Bio
                   Container(
-                    padding: EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
@@ -80,17 +106,17 @@ class ProfileScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'Tiểu sử',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
-                          'Sinh viên năm 3, yêu thích lập trình Python và Machine Learning. Đam mê chia sẻ kiến thức với cộng đồng.',
-                          style: TextStyle(
+                          user?.bio ?? 'Chưa cập nhật tiểu sử',
+                          style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.textSecondary,
                             height: 1.5,
@@ -99,29 +125,32 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Stats
                   Row(
                     children: [
                       Expanded(
-                        child: _buildStatCard('12', 'Tài liệu'),
+                        child: _buildStatCard(
+                          '${user?.documentCount ?? 0}',
+                          'Tài liệu',
+                        ),
                       ),
                       SizedBox(width: 12),
                       Expanded(
-                        child: _buildStatCard('450', 'Theo dõi'),
+                        child: _buildStatCard('0', 'Theo dõi'),
                       ),
                       SizedBox(width: 12),
                       Expanded(
-                        child: _buildStatCard('892', 'Được theo dõi'),
+                        child: _buildStatCard('0', 'Được theo dõi'),
                       ),
                     ],
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Contribution Level
                   Container(
-                    padding: EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.amber.shade50,
                       borderRadius: BorderRadius.circular(8),
@@ -133,25 +162,25 @@ class ProfileScreen extends StatelessWidget {
                         Row(
                           children: [
                             Icon(Icons.star, color: Colors.amber, size: 20),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
-                              'Cấp độ đóng góp: Gold',
-                              style: TextStyle(
+                              'Cấp độ đóng góp: ${user?.contributionLevel ?? "bronze"}',
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         LinearProgressIndicator(
                           value: 0.7,
                           backgroundColor: Colors.grey.shade300,
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
                           minHeight: 6,
                         ),
-                        SizedBox(height: 4),
-                        Text(
+                        const SizedBox(height: 4),
+                        const Text(
                           '70% đến cấp Platinum',
                           style: TextStyle(
                             fontSize: 12,
@@ -161,73 +190,106 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Achievements
-                  Text(
+                  const Text(
                     'Thành tựu',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   GridView.count(
                     crossAxisCount: 4,
                     shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
+                    physics: const NeverScrollableScrollPhysics(),
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,
-                    children: [
-                      _buildAchievementBadge('🏆', 'Top 10'),
-                      _buildAchievementBadge('📚', '100 Tài liệu'),
-                      _buildAchievementBadge('👍', '1K Like'),
-                      _buildAchievementBadge('⭐', '5 Star'),
+                    children: const [
+                      _AchievementBadge(emoji: '🏆', label: 'Top 10'),
+                      _AchievementBadge(emoji: '📚', label: '100 Tài liệu'),
+                      _AchievementBadge(emoji: '👍', label: '1K Like'),
+                      _AchievementBadge(emoji: '⭐', label: '5 Star'),
                     ],
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // My Documents
-                  Text(
+                  const Text(
                     'Tài liệu của tôi',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Container(
-                    padding: EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.grey.shade200),
                     ),
-                    child: Column(
+                    child: const Column(
                       children: [
-                        _buildDocumentRow('Python từ cơ bản', '1.2K tải', '4.8'),
+                        _DocumentRow(
+                          title: 'Python từ cơ bản',
+                          downloads: '1.2K tải',
+                          rating: '4.8',
+                        ),
                         Divider(),
-                        _buildDocumentRow('Java Design Patterns', '856 tải', '4.6'),
+                        _DocumentRow(
+                          title: 'Java Design Patterns',
+                          downloads: '856 tải',
+                          rating: '4.6',
+                        ),
                         Divider(),
-                        _buildDocumentRow('Web Development Guide', '543 tải', '4.5'),
+                        _DocumentRow(
+                          title: 'Web Development Guide',
+                          downloads: '543 tải',
+                          rating: '4.5',
+                        ),
                       ],
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                  // Action Buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          icon: Icon(Icons.logout),
-                          label: Text('Đăng xuất'),
-                          onPressed: () {},
-                        ),
+                  // ✅ Logout Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.logout),
+                      label: const Text('Đăng xuất'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          icon: Icon(Icons.add),
-                          label: Text('Tải lên'),
-                          onPressed: () {},
-                        ),
+                      onPressed: () async {
+                        await authProvider.logout();
+                        
+                        if (context.mounted) {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
+                            (route) => false,
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Upload Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.add),
+                      label: const Text('Tải lên tài liệu'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                    ],
+                      onPressed: () {},
+                    ),
                   ),
                 ],
               ),
@@ -240,7 +302,7 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildStatCard(String value, String label) {
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -250,16 +312,16 @@ class ProfileScreen extends StatelessWidget {
         children: [
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.primary,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,
             ),
@@ -268,8 +330,16 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildAchievementBadge(String emoji, String label) {
+class _AchievementBadge extends StatelessWidget {
+  final String emoji;
+  final String label;
+
+  const _AchievementBadge({required this.emoji, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -279,19 +349,32 @@ class ProfileScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(emoji, style: TextStyle(fontSize: 24)),
-          SizedBox(height: 4),
+          Text(emoji, style: const TextStyle(fontSize: 24)),
+          const SizedBox(height: 4),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 10),
+            style: const TextStyle(fontSize: 10),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildDocumentRow(String title, String downloads, String rating) {
+class _DocumentRow extends StatelessWidget {
+  final String title;
+  final String downloads;
+  final String rating;
+
+  const _DocumentRow({
+    required this.title,
+    required this.downloads,
+    required this.rating,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -301,21 +384,21 @@ class ProfileScreen extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 downloads,
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
               ),
             ],
           ),
         ),
         Row(
           children: [
-            Icon(Icons.star, color: Colors.amber, size: 14),
-            SizedBox(width: 4),
-            Text(rating, style: TextStyle(fontSize: 12)),
+            const Icon(Icons.star, color: Colors.amber, size: 14),
+            const SizedBox(width: 4),
+            Text(rating, style: const TextStyle(fontSize: 12)),
           ],
         ),
       ],

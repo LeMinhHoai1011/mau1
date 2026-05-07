@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../providers/auth_provider.dart';
 import '../auth/login_screen.dart';
 
 class OnboardingScreen extends StatelessWidget {
@@ -23,12 +25,16 @@ class OnboardingScreen extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     'EduShare',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ],
               ),
               const Spacer(),
-              // Giả lập vùng chứa hình ảnh minh họa
+              // Hình minh họa
               Container(
                 height: 300,
                 width: double.infinity,
@@ -36,7 +42,9 @@ class OnboardingScreen extends StatelessWidget {
                   color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Center(child: Icon(Icons.laptop_chromebook, size: 100, color: AppColors.primary)),
+                child: const Center(
+                  child: Icon(Icons.laptop_chromebook, size: 100, color: AppColors.primary),
+                ),
               ),
               const SizedBox(height: 40),
               RichText(
@@ -57,7 +65,7 @@ class OnboardingScreen extends StatelessWidget {
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 16, height: 1.5),
               ),
               const Spacer(),
-              // Page Indicators (Mock)
+              // Page Indicators
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -69,11 +77,24 @@ class OnboardingScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 32),
+              
+              // ✅ Nút "Bắt đầu ngay" - lưu isFirstTime + chuyển Login
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    // Lưu trạng thái first time
+                    await context.read<AuthProvider>().completeOnboarding();
+                    
+                    // Chuyển sang LoginScreen (replace to remove back stack)
+                    if (context.mounted) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      );
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -82,11 +103,17 @@ class OnboardingScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
+              
+              // ✅ Nút "Đăng nhập" - bỏ qua onboarding, chuyển Login
               TextButton(
                 onPressed: () {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                  // Bỏ qua onboarding, không lưu gì cả
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  );
                 },
-                child: Text('Đăng nhập', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                child: const Text('Đăng nhập', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
               ),
             ],
           ),

@@ -14,21 +14,46 @@ import 'views/discovery/discovery_screen.dart';
 import 'views/library/library_screen.dart';
 import 'views/notification/notification_screen.dart';
 import 'views/profile/profile_screen.dart';
-import 'views/onboarding/onboarding_screen.dart';
-import 'views/auth/login_screen.dart';
-import 'views/community/community_screen.dart';
-import 'views/search/search_screen.dart';
-import 'views/library/library_screen.dart';
-import 'views/settings/settings_screen.dart';
+import 'views/auth/auth_wrapper.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late AuthProvider _authProvider;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _authProvider = AuthProvider();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    await _authProvider.initAuth();
+    if (mounted) {
+      setState(() => _isInitialized = true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      return const MaterialApp(
+        home: Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider.value(value: _authProvider),
         ChangeNotifierProvider(create: (_) => DocumentProvider()),
         ChangeNotifierProvider(create: (_) => SearchProvider()),
         ChangeNotifierProvider(create: (_) => LibraryProvider()),
@@ -38,14 +63,14 @@ class MyApp extends StatelessWidget {
         title: AppStrings.appName,
         theme: AppTheme.lightTheme,
         debugShowCheckedModeBanner: false,
-        home: OnboardingScreen(),
+        home: const AuthWrapper(),
       ),
     );
   }
 }
 
 class MainApp extends StatefulWidget {
-  const MainApp({Key? key}) : super(key: key);
+  const MainApp({super.key});
 
   @override
   State<MainApp> createState() => _MainAppState();
@@ -69,7 +94,10 @@ class _MainAppState extends State<MainApp> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
-        items: [
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textSecondary,
+        items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Trang chủ'),
           BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Khám phá'),
           BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Thư viện'),

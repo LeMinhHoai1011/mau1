@@ -3,6 +3,7 @@ class UserModel {
   final String id;
   final String name;
   final String email;
+  final String? phone;
   final String? profileImageUrl;
   final String bio;
   final int documentCount;
@@ -12,6 +13,7 @@ class UserModel {
     required this.id,
     required this.name,
     required this.email,
+    this.phone,
     this.profileImageUrl,
     this.bio = '',
     this.documentCount = 0,
@@ -23,6 +25,7 @@ class UserModel {
       'id': id,
       'name': name,
       'email': email,
+      'phone': phone,
       'profileImageUrl': profileImageUrl,
       'bio': bio,
       'documentCount': documentCount,
@@ -35,6 +38,7 @@ class UserModel {
       id: map['id'] ?? '',
       name: map['name'] ?? '',
       email: map['email'] ?? '',
+      phone: map['phone'],
       profileImageUrl: map['profileImageUrl'],
       bio: map['bio'] ?? '',
       documentCount: map['documentCount'] ?? 0,
