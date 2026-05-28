@@ -1,9 +1,15 @@
 // Book Lending Screen
+// 📚 Màn hình mượn/cho mượn sách - Parameter: documentId (optional) để mượn document cụ thể
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 
 class BookLendingScreen extends StatefulWidget {
+  /// 📚 Document ID to lend (if any)
+  final String? documentId;
+
+  const BookLendingScreen({super.key, this.documentId});
+
   @override
   State<BookLendingScreen> createState() => _BookLendingScreenState();
 }
@@ -14,7 +20,24 @@ class _BookLendingScreenState extends State<BookLendingScreen> {
   final TextEditingController _locationController = TextEditingController();
   
   String _selectedCondition = 'Rất tốt';
-  List<Map<String, String>> _bookListings = [];
+  final List<Map<String, String>> _bookListings = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // 📚 Nếu có documentId, có thể load thông tin document
+    if (widget.documentId != null && widget.documentId!.isNotEmpty) {
+      _loadDocumentInfo(widget.documentId!);
+    }
+  }
+
+  /// Load thông tin document từ database (nếu có)
+  void _loadDocumentInfo(String documentId) {
+    // TODO: Load document info và set vào controllers
+    // Example:
+    // _titleController.text = document.title;
+    // _authorController.text = document.author;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +61,7 @@ class _BookLendingScreenState extends State<BookLendingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.library_books, size: 64, color: AppColors.primary.withOpacity(0.3)),
+          Icon(Icons.library_books, size: 64, color: AppColors.primary.withValues(alpha: 0.3)),
           SizedBox(height: 16),
           Text(
             'Chưa có sách nào',
@@ -79,7 +102,7 @@ class _BookLendingScreenState extends State<BookLendingScreen> {
             width: 60,
             height: 80,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Icon(Icons.book, color: AppColors.primary, size: 32),

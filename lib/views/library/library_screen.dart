@@ -1,8 +1,11 @@
 // Library Screen - Quản lý tài liệu đã lưu/tải
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/router/router_helper.dart';
 
 class LibraryScreen extends StatefulWidget {
+  const LibraryScreen({super.key});
+
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
 }
@@ -53,13 +56,21 @@ class _LibraryScreenState extends State<LibraryScreen> with SingleTickerProvider
 
   Widget _buildSavedTab() {
     return ListView.builder(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       itemCount: 5,
       itemBuilder: (context, index) => Card(
         child: ListTile(
+          leading: const Icon(Icons.bookmark, color: AppColors.primary),
           title: Text('Tài liệu đã lưu $index'),
-          subtitle: Text('Python cơ bản'),
-          trailing: IconButton(icon: Icon(Icons.delete), onPressed: () {}),
+          subtitle: const Text('Python cơ bản'),
+          trailing: IconButton(icon: const Icon(Icons.delete), onPressed: () {}),
+          onTap: () {
+            RouterHelper.goDocumentDetail(
+              context,
+              documentId: 'saved_$index',
+              title: 'Tài liệu đã lưu $index',
+            );
+          },
         ),
       ),
     );
@@ -67,19 +78,50 @@ class _LibraryScreenState extends State<LibraryScreen> with SingleTickerProvider
 
   Widget _buildDownloadedTab() {
     return ListView.builder(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       itemCount: 3,
       itemBuilder: (context, index) => Card(
         child: ListTile(
+          leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
           title: Text('File PDF $index'),
-          subtitle: Text('2.5MB • Tải ngày 20/10'),
-          trailing: IconButton(icon: Icon(Icons.folder_open), onPressed: () {}),
+          subtitle: const Text('2.5MB • Tải ngày 20/10'),
+          trailing: IconButton(
+            icon: const Icon(Icons.folder_open),
+            onPressed: () {
+              RouterHelper.goFileManager(context);
+            },
+          ),
+          onTap: () {
+            RouterHelper.goDocumentDetail(
+              context,
+              documentId: 'downloaded_$index',
+              title: 'File PDF $index',
+            );
+          },
         ),
       ),
     );
   }
 
   Widget _buildReadingListTab() {
-    return Center(child: Text('Chưa có danh sách đọc'));
+    final lists = ['Tài liệu ôn thi cuối kỳ', 'Giáo trình tham khảo AI'];
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: lists.length,
+      itemBuilder: (context, index) => Card(
+        child: ListTile(
+          leading: const Icon(Icons.playlist_play, color: AppColors.primary),
+          title: Text(lists[index]),
+          subtitle: const Text('3 tài liệu • Tạo ngày 25/05'),
+          onTap: () {
+            RouterHelper.goDocumentDetail(
+              context,
+              documentId: 'reading_list_$index',
+              title: lists[index],
+            );
+          },
+        ),
+      ),
+    );
   }
 }

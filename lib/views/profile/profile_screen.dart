@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/router/router_helper.dart';
 import '../../providers/auth_provider.dart';
-import '../auth/login_screen.dart';
 import 'edit_profile_screen.dart';
 import '../settings/settings_screen.dart';
 
@@ -69,20 +69,14 @@ actions: [
               IconButton(
                 icon: const Icon(Icons.edit),
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => EditProfileScreen()),
-                  );
+                  RouterHelper.goEditProfile(context);
                 },
               ),
               // ✅ Settings button
               IconButton(
                 icon: const Icon(Icons.settings),
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => SettingsScreen()),
-                  );
+                  RouterHelper.goSettings(context);
                 },
               ),
             ],
@@ -226,59 +220,52 @@ actions: [
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.grey.shade200),
                     ),
-                    child: const Column(
+                    child: Column(
                       children: [
                         _DocumentRow(
                           title: 'Python từ cơ bản',
                           downloads: '1.2K tải',
                           rating: '4.8',
+                          onTap: () {
+                            RouterHelper.goDocumentDetail(
+                              context,
+                              documentId: 'python_basic',
+                              title: 'Python từ cơ bản',
+                            );
+                          },
                         ),
-                        Divider(),
+                        const Divider(),
                         _DocumentRow(
                           title: 'Java Design Patterns',
                           downloads: '856 tải',
                           rating: '4.6',
+                          onTap: () {
+                            RouterHelper.goDocumentDetail(
+                              context,
+                              documentId: 'java_patterns',
+                              title: 'Java Design Patterns',
+                            );
+                          },
                         ),
-                        Divider(),
+                        const Divider(),
                         _DocumentRow(
                           title: 'Web Development Guide',
                           downloads: '543 tải',
                           rating: '4.5',
+                          onTap: () {
+                            RouterHelper.goDocumentDetail(
+                              context,
+                              documentId: 'web_dev_guide',
+                              title: 'Web Development Guide',
+                            );
+                          },
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 20),
 
-                  // ✅ Logout Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.logout),
-                      label: const Text('Đăng xuất'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      onPressed: () async {
-                        await authProvider.logout();
-                        
-                        if (context.mounted) {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                            (route) => false,
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Upload Button
+                  // Upload Button - ➕ Tải lên tài liệu
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -288,7 +275,10 @@ actions: [
                         backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      onPressed: () {},
+                      // 🔀 Navigate đến upload screen
+                      onPressed: () {
+                        RouterHelper.goUpload(context);
+                      },
                     ),
                   ),
                 ],
@@ -366,42 +356,50 @@ class _DocumentRow extends StatelessWidget {
   final String title;
   final String downloads;
   final String rating;
+  final VoidCallback? onTap;
 
   const _DocumentRow({
     required this.title,
     required this.downloads,
     required this.rating,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                downloads,
-                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-              ),
-            ],
-          ),
-        ),
-        Row(
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Icon(Icons.star, color: Colors.amber, size: 14),
-            const SizedBox(width: 4),
-            Text(rating, style: const TextStyle(fontSize: 12)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    downloads,
+                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                const Icon(Icons.star, color: Colors.amber, size: 14),
+                const SizedBox(width: 4),
+                Text(rating, style: const TextStyle(fontSize: 12)),
+              ],
+            ),
           ],
         ),
-      ],
+      ),
     );
   }
 }

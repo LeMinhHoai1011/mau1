@@ -1,52 +1,80 @@
-// Search Provider
+// Search Provider with DB integration
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../data/models/search_history_model.dart';
+import '../data/database/search_history_dao.dart';
 
 class SearchProvider extends ChangeNotifier {
-  List<String> _searchHistory = [];
+  final SearchHistoryDAO _searchHistoryDAO = SearchHistoryDAO();
+  List<SearchHistoryModel> _searchHistory = [];
   List<String> _suggestions = [];
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  List<String> get searchHistory => _searchHistory;
+  List<SearchHistoryModel> get searchHistory => _searchHistory;
   List<String> get suggestions => _suggestions;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
   SearchProvider() {
-    _loadSearchHistory();
+    loadSearchHistory();
   }
 
-  // Tải lịch sử tìm kiếm
-  Future<void> _loadSearchHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    _searchHistory = prefs.getStringList('search_history') ?? [];
+  // Load search history from DB
+  Future<void> loadSearchHistory() async {
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
-  }
 
-  // Thêm vào lịch sử tìm kiếm
-  Future<void> addSearchQuery(String query) async {
-    if (query.isNotEmpty && !_searchHistory.contains(query)) {
-      _searchHistory.insert(0, query);
-      if (_searchHistory.length > 10) {
-        _searchHistory.removeLast();
-      }
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList('search_history', _searchHistory);
+    try {
+      _searchHistory = await _searchHistoryDAO.getAllSearchHistory();
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  // Xóa lịch sử tìm kiếm
-  Future<void> clearSearchHistory() async {
-    _searchHistory.clear();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('search_history');
-    notifyListeners();
+  // Add search query to history
+  Future<void> addSearchQuery(String query) async {
+    if (query.isNotEmpty) {
+      try {
+        final historyItem = SearchHistoryModel(
+          query: query,
+          searchDate: DateTime.now().toIso8601String(),
+        );
+        await _searchHistoryDAO.insertSearchHistory(historyItem);
+        await loadSearchHistory(); // Reload to get updated list
+      } catch (e) {
+        _errorMessage = e.toString();
+        notifyListeners();
+      }
+    }
   }
 
-  // Xóa một mục khỏi lịch sử
-  Future<void> removeSearchQuery(String query) async {
-    _searchHistory.remove(query);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('search_history', _searchHistory);
-    notifyListeners();
+  // Clear all search history
+  Future<void> clearSearchHistory() async {
+    try {
+      await _searchHistoryDAO.clearAllSearchHistory();
+      _searchHistory.clear();
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
+  // Remove specific search query
+  Future<void> removeSearchQuery(int id) async {
+    try {
+      await _searchHistoryDAO.deleteSearchHistory(id);
+      await loadSearchHistory();
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
   }
 
   // Cập nhật gợi ý

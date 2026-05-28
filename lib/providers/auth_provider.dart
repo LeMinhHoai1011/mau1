@@ -1,6 +1,7 @@
-// Auth Provider with SharedPreferences
+// Auth Provider with Secure Storage
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../data/models/user_model.dart';
 import '../data/database/user_dao.dart';
 
@@ -11,18 +12,22 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoggedIn = false;
   String? _errorMessage;
   final UserDAO _userDAO = UserDAO();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   
   // Keys for SharedPreferences
   static const String _keyFirstTime = 'isFirstTime';
   static const String _keyIsLoggedIn = 'isLoggedIn';
+  static const String _keyToken = 'auth_token';
 
-  // Getters
-  UserModel? get currentUser => _currentUser;
-  bool get isLoading => _isLoading;
-  bool get isFirstTime => _isFirstTime;
-  bool get isLoggedIn => _isLoggedIn;
-  bool get isAuthenticated => _currentUser != null && _isLoggedIn;
-  String? get errorMessage => _errorMessage;
+  // Save auth token securely
+  Future<void> _saveToken(String token) async {
+    await _secureStorage.write(key: _keyToken, value: token);
+  }
+
+  // Clear token
+  Future<void> _clearToken() async {
+    await _secureStorage.delete(key: _keyToken);
+  }
 
   // Initialize - Call this in main() before runApp()
   Future<void> initAuth() async {
@@ -68,6 +73,9 @@ class AuthProvider extends ChangeNotifier {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool(_keyIsLoggedIn, true);
         
+        // Save token (mock for now)
+        await _saveToken('mock_token_${user.id}');
+        
         _isLoading = false;
         notifyListeners();
         return true;
@@ -107,6 +115,9 @@ class AuthProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_keyIsLoggedIn, true);
       
+      // Save token
+      await _saveToken('mock_token_${newUser.id}');
+      
       _isLoading = false;
       notifyListeners();
       return true;
@@ -138,6 +149,9 @@ class AuthProvider extends ChangeNotifier {
     await prefs.setBool(_keyIsLoggedIn, false);
     // KHÔNG xóa isFirstTime để không hiện onboarding nữa
     
+    // Clear token
+    await _clearToken();
+    
     notifyListeners();
   }
 
@@ -154,4 +168,12 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  // Getters
+  bool get isLoading => _isLoading;
+  bool get isInitialized => _isLoggedIn || !_isFirstTime;
+  bool get isFirstTime => _isFirstTime;
+  bool get isLoggedIn => _isLoggedIn;
+  UserModel? get currentUser => _currentUser;
+  String get errorMessage => _errorMessage ?? '';
 }

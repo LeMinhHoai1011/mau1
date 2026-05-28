@@ -1,8 +1,10 @@
 // Trending Card Widget
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/router/router_helper.dart';
 
 class TrendingCard extends StatelessWidget {
+  final String? documentId;
   final String title;
   final String author;
   final double rating;
@@ -10,18 +12,26 @@ class TrendingCard extends StatelessWidget {
   final String? thumbnailUrl;
 
   const TrendingCard({
-    Key? key,
+    super.key,
+    this.documentId,
     required this.title,
     required this.author,
     required this.rating,
     required this.views,
     this.thumbnailUrl,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        RouterHelper.goDocumentDetail(
+          context,
+          documentId: documentId ?? title,
+          title: title,
+          imagePath: thumbnailUrl,
+        );
+      },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -42,7 +52,7 @@ class TrendingCard extends StatelessWidget {
               width: double.infinity,
               height: 150,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(12),
                   topRight: Radius.circular(12),

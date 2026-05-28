@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/router/router_helper.dart';
 import '../../providers/auth_provider.dart';
 import '../auth/login_screen.dart';
 
 class OnboardingScreen extends StatelessWidget {
-  const OnboardingScreen({Key? key}) : super(key: key);
+  const OnboardingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +40,7 @@ class OnboardingScreen extends StatelessWidget {
                 height: 300,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Center(
@@ -87,12 +88,9 @@ class OnboardingScreen extends StatelessWidget {
                     // Lưu trạng thái first time
                     await context.read<AuthProvider>().completeOnboarding();
                     
-                    // Chuyển sang LoginScreen (replace to remove back stack)
+                    // 🔀 Chuyển sang LoginScreen (xóa stack)
                     if (context.mounted) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      );
+                      RouterHelper.goLogin(context);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -104,14 +102,11 @@ class OnboardingScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               
-              // ✅ Nút "Đăng nhập" - bỏ qua onboarding, chuyển Login
+              // ✅ Nút "Đăng nhập" - bỏ qua onboarding, không lưu gì cả
               TextButton(
                 onPressed: () {
-                  // Bỏ qua onboarding, không lưu gì cả
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  );
+                  // 🔀 Bỏ qua onboarding, đi đến login (xóa stack)
+                  RouterHelper.goLogin(context);
                 },
                 child: const Text('Đăng nhập', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
               ),

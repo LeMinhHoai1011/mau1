@@ -1,74 +1,90 @@
 // Document Provider
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../data/models/document_model.dart';
 import '../data/database/document_dao.dart';
+
+enum DocumentStatus { idle, loading, success, error }
 
 class DocumentProvider extends ChangeNotifier {
   final DocumentDAO _documentDAO = DocumentDAO();
   List<DocumentModel> _documents = [];
   List<DocumentModel> _filteredDocuments = [];
-  bool _isLoading = false;
+  DocumentStatus _status = DocumentStatus.idle;
   String? _errorMessage;
+  Timer? _debounceTimer;
 
   List<DocumentModel> get documents => _documents;
   List<DocumentModel> get filteredDocuments => _filteredDocuments;
-  bool get isLoading => _isLoading;
+  DocumentStatus get status => _status;
+  bool get isLoading => _status == DocumentStatus.loading;
+  bool get isSuccess => _status == DocumentStatus.success;
+  bool get hasError => _status == DocumentStatus.error;
   String? get errorMessage => _errorMessage;
 
   // Lấy tất cả tài liệu
   Future<void> loadDocuments() async {
-    _isLoading = true;
+    _status = DocumentStatus.loading;
     _errorMessage = null;
     notifyListeners();
 
     try {
       _documents = await _documentDAO.getAllDocuments();
       _filteredDocuments = _documents;
-      _isLoading = false;
+      _status = DocumentStatus.success;
       notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
-      _isLoading = false;
+      _status = DocumentStatus.error;
       notifyListeners();
     }
   }
 
   // Lấy tài liệu theo danh mục
   Future<void> loadDocumentsByCategory(String category) async {
-    _isLoading = true;
+    _status = DocumentStatus.loading;
     _errorMessage = null;
     notifyListeners();
 
     try {
       _filteredDocuments = await _documentDAO.getDocumentsByCategory(category);
-      _isLoading = false;
+      _status = DocumentStatus.success;
       notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
-      _isLoading = false;
+      _status = DocumentStatus.error;
       notifyListeners();
     }
+  }
+
+  // Tìm kiếm với debounce
+  void searchWithDebounce(String query) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      searchDocuments(query);
+    });
   }
 
   // Tìm kiếm tài liệu
   Future<void> searchDocuments(String query) async {
     if (query.isEmpty) {
       _filteredDocuments = _documents;
+      _status = DocumentStatus.success;
       notifyListeners();
       return;
     }
 
-    _isLoading = true;
+    _status = DocumentStatus.loading;
     _errorMessage = null;
     notifyListeners();
 
     try {
       _filteredDocuments = await _documentDAO.searchDocuments(query);
-      _isLoading = false;
+      _status = DocumentStatus.success;
       notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
-      _isLoading = false;
+      _status = DocumentStatus.error;
       notifyListeners();
     }
   }

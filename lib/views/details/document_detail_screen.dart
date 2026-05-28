@@ -1,19 +1,25 @@
-// Document Detail Screen
+/// Document Detail Screen - Enhanced with Material 3
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/constants/app_spacing.dart';
+import '../../core/router/router_helper.dart';
 
 class DocumentDetailScreen extends StatelessWidget {
-  final String documentTitle;
+  final String documentId;
+  final String? title;
+  final String? imagePath;
   final String author;
   final double rating;
 
   const DocumentDetailScreen({
-    Key? key,
-    this.documentTitle = 'Python từ cơ bản đến nâng cao',
-    this.author = 'Nguyễn Văn A',
+    super.key,
+    required this.documentId, 
+    this.title,               
+    this.imagePath,           
+    this.author = 'Nguyễn Văn A', 
     this.rating = 4.8,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,13 +32,13 @@ class DocumentDetailScreen extends StatelessWidget {
             expandedHeight: 200,
             pinned: true,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context),
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                color: AppColors.primary.withOpacity(0.1),
-                child: Center(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                child: const Center(
                   child: Icon(
                     Icons.description,
                     color: AppColors.primary,
@@ -43,11 +49,11 @@ class DocumentDetailScreen extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                icon: Icon(Icons.share),
+                icon: const Icon(Icons.share),
                 onPressed: () {},
               ),
               IconButton(
-                icon: Icon(Icons.bookmark_outline),
+                icon: const Icon(Icons.bookmark_outline),
                 onPressed: () {},
               ),
             ],
@@ -56,20 +62,16 @@ class DocumentDetailScreen extends StatelessWidget {
           // Content
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Title
                   Text(
-                    documentTitle,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textMain,
-                    ),
+                    title ?? documentId,
+                    style: Theme.of(context).textTheme.headlineLarge,
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // Author and Rating
                   Row(
@@ -80,178 +82,144 @@ class DocumentDetailScreen extends StatelessWidget {
                         children: [
                           Text(
                             AppStrings.author,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
+                            style: Theme.of(context).textTheme.labelMedium,
                           ),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             author,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ],
                       ),
                       Column(
                         children: [
                           Row(
-                            children: [
-                              ...List.generate(
-                                5,
-                                (index) => Icon(
-                                  index < rating.toInt()
-                                      ? Icons.star
-                                      : Icons.star_outline,
-                                  color: Colors.amber,
-                                  size: 16,
-                                ),
+                            children: List.generate(
+                              5,
+                              (index) => Icon(
+                                index < rating.toInt()
+                                    ? Icons.star
+                                    : Icons.star_outline,
+                                color: Colors.amber,
+                                size: AppSpacing.iconSmall,
                               ),
-                            ],
+                            ),
                           ),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             '$rating (245 votes)',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
+                            style: Theme.of(context).textTheme.labelSmall,
                           ),
                         ],
                       ),
                     ],
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Stats
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildStat('1.2K', 'Lượt tải'),
-                      _buildStat('5.3K', 'Lượt xem'),
-                      _buildStat('PDF', 'Loại file'),
+                      _buildStat(context, '1.2K', 'Lượt tải'),
+                      _buildStat(context, '5.3K', 'Lượt xem'),
+                      _buildStat(context, 'PDF', 'Loại file'),
                     ],
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Summary
                   Text(
                     AppStrings.summary,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.md),
                   Text(
                     'Tài liệu này cung cấp hướng dẫn toàn diện về lập trình Python, bắt đầu từ những khái niệm cơ bản cho đến các kỹ thuật lập trình nâng cao. Phù hợp cho sinh viên bắt đầu học lập trình.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                      height: 1.5,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xl),
 
-                  // Document Info
-                  Container(
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInfoRow('Danh mục:', 'Lập trình'),
-                        Divider(height: 12),
-                        _buildInfoRow('Ngày tải lên:', '20/02/2024'),
-                        Divider(height: 12),
-                        _buildInfoRow('Kích thước:', '2.5 MB'),
-                        Divider(height: 12),
-                        _buildInfoRow('Số trang:', '120'),
-                      ],
+                  // Download Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.download),
+                      label: const Text(AppStrings.download),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.lg),
 
-                  // Tags
-                  Text(
-                    'Tags',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: ['Python', 'Lập trình', 'Tài liệu học tập', 'Cơ bản']
-                        .map(
-                          (tag) => Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              tag,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  SizedBox(height: 24),
-
-                  // Action Buttons
+                  // Community Actions Row - 🤝 Hoạt động cộng đồng liên quan sách/tài liệu
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton.icon(
-                          icon: Icon(Icons.download),
-                          label: Text(AppStrings.download),
-                          onPressed: () {},
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            RouterHelper.goBookLending(context, documentId: documentId);
+                          },
+                          icon: const Icon(Icons.menu_book, size: 16),
+                          label: const Text('Mượn sách', style: TextStyle(fontSize: 11)),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: const BorderSide(color: AppColors.primary),
+                          ),
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.xs),
                       Expanded(
                         child: OutlinedButton.icon(
-                          icon: Icon(Icons.share),
-                          label: Text(AppStrings.share),
-                          onPressed: () {},
+                          onPressed: () {
+                            RouterHelper.goReview(
+                              context,
+                              documentId: documentId,
+                              documentTitle: title ?? documentId,
+                            );
+                          },
+                          icon: const Icon(Icons.star_outline, size: 16),
+                          label: const Text('Đánh giá', style: TextStyle(fontSize: 11)),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: const BorderSide(color: Colors.amber),
+                            foregroundColor: Colors.amber.shade850,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            RouterHelper.goCommunityFeed(
+                              context,
+                              communityId: title ?? documentId,
+                            );
+                          },
+                          icon: const Icon(Icons.forum_outlined, size: 16),
+                          label: const Text('Thảo luận', style: TextStyle(fontSize: 11)),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: const BorderSide(color: Colors.green),
+                            foregroundColor: Colors.green,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      icon: Icon(Icons.bookmark_outline),
-                      label: Text(AppStrings.save),
-                      onPressed: () {},
-                    ),
-                  ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xl),
 
-                  // Comments Section
+                  // Related Documents
                   Text(
-                    'Bình luận (142)',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    'Tài liệu liên quan',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
-                  SizedBox(height: 12),
-                  _buildCommentItem('Nguyễn Văn B', 'Tài liệu rất hay!', '2 giờ trước'),
-                  SizedBox(height: 12),
-                  _buildCommentItem('Trần Thị C', 'Cảm ơn đã chia sẻ', '5 giờ trước'),
+                  const SizedBox(height: AppSpacing.md),
+                  _buildRelatedItem(context, 'cpp_advanced', 'C++ Advanced Concepts', 'Lê Quang C'),
+                  const SizedBox(height: AppSpacing.md),
+                  _buildRelatedItem(context, 'web_dev_guide', 'Web Development Guide', 'Nguyễn Văn A'),
                 ],
               ),
             ),
@@ -261,100 +229,74 @@ class DocumentDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStat(String value, String label) {
+  Widget _buildStat(BuildContext context, String value, String label) {
     return Column(
       children: [
         Text(
           value,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primary,
-          ),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
         ),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
+          style: Theme.of(context).textTheme.labelSmall,
         ),
       ],
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            color: AppColors.textSecondary,
+  Widget _buildRelatedItem(BuildContext context, String relDocId, String relTitle, String relAuthor) {
+    return GestureDetector(
+      onTap: () {
+        RouterHelper.goDocumentDetail(
+          context,
+          documentId: relDocId,
+          title: relTitle,
+        );
+      },
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          side: const BorderSide(color: AppColors.borderLight),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                ),
+                child: const Icon(Icons.description, color: AppColors.primary),
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      relTitle,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      relAuthor,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCommentItem(String name, String content, String time) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CircleAvatar(
-          radius: 20,
-          backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=1'),
-        ),
-        SizedBox(width: 12),
-        Expanded(
-          child: Container(
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  content,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textMain,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  time,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
-
-

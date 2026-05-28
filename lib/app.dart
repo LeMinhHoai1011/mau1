@@ -1,20 +1,24 @@
-// Updated App with all providers & routes
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/constants/app_strings.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_colors.dart';
+import 'core/router/router.dart';
 import 'providers/auth_provider.dart';
 import 'providers/document_provider.dart';
 import 'providers/search_provider.dart';
 import 'providers/library_provider.dart';
 import 'providers/settings_provider.dart';
+import 'providers/community_provider.dart';
+import 'providers/book_lending_provider.dart';
 import 'views/home/home_screen.dart';
 import 'views/discovery/discovery_screen.dart';
 import 'views/library/library_screen.dart';
 import 'views/notification/notification_screen.dart';
 import 'views/profile/profile_screen.dart';
 import 'views/auth/auth_wrapper.dart';
+
+import 'dart:async';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -30,12 +34,13 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _authProvider = AuthProvider();
     _initializeApp();
   }
 
   Future<void> _initializeApp() async {
-    await _authProvider.initAuth();
+    _authProvider = AuthProvider();
+    await _authProvider.initAuth(); // ✅ Khởi tạo Auth trước
+    
     if (mounted) {
       setState(() => _isInitialized = true);
     }
@@ -45,8 +50,13 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     if (!_isInitialized) {
       return const MaterialApp(
+        debugShowCheckedModeBanner: false,
         home: Scaffold(
-          body: Center(child: CircularProgressIndicator()),
+          body: Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation(AppColors.primary),
+            ),
+          ),
         ),
       );
     }
@@ -58,17 +68,33 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => SearchProvider()),
         ChangeNotifierProvider(create: (_) => LibraryProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => CommunityProvider()),
+        ChangeNotifierProvider(create: (_) => BookLendingProvider()),
       ],
       child: MaterialApp(
         title: AppStrings.appName,
         theme: AppTheme.lightTheme,
         debugShowCheckedModeBanner: false,
-        home: const AuthWrapper(),
+        initialRoute: Routes.splash,
+        onGenerateRoute: AppRouter.generateRoute,
+        home: FutureBuilder(
+          future: _authProvider.initAuth(),
+          builder: (context, snapshot) {
+            // Khi chưa load xong auth state
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            return const AuthWrapper();
+          },
+        ),
       ),
     );
   }
 }
 
+// ✅ MainApp - Bottom Navigation (KHÔNG ĐỔI)
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
 
@@ -80,11 +106,11 @@ class _MainAppState extends State<MainApp> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    HomeScreen(),
-    DiscoveryScreen(),
-    LibraryScreen(),
-    NotificationScreen(),
-    ProfileScreen(),
+    const HomeScreen(),
+    const DiscoveryScreen(),
+    const LibraryScreen(),
+    const NotificationScreen(),
+    const ProfileScreen(),
   ];
 
   @override

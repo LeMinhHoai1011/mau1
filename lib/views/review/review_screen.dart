@@ -1,13 +1,30 @@
 // Review Screen
+// ⭐ Màn hình đánh giá tài liệu
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 
+/// ⭐ Màn hình đánh giá tài liệu
+/// Parameters:
+/// - documentId: ID của tài liệu cần đánh giá
+/// - documentTitle: Tên tài liệu (hiển thị trong header)
 class ReviewScreen extends StatelessWidget {
+  final String documentId;
+  final String documentTitle;
+
+  const ReviewScreen({
+    super.key,
+    required this.documentId,
+    required this.documentTitle,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text('Đánh giá')),
+      appBar: AppBar(
+        // 📚 Hiển thị tên tài liệu trong header
+        title: Text('Đánh giá: $documentTitle'),
+      ),
       body: Column(
         children: [
           // Form đánh giá

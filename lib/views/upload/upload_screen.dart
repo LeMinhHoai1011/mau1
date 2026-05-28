@@ -4,6 +4,8 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 
 class UploadScreen extends StatefulWidget {
+  const UploadScreen({super.key});
+
   @override
   State<UploadScreen> createState() => _UploadScreenState();
 }
@@ -35,7 +37,7 @@ class _UploadScreenState extends State<UploadScreen> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: AppColors.primary.withOpacity(0.3),
+                  color: AppColors.primary.withValues(alpha: 0.3),
                   style: BorderStyle.solid,
                 ),
               ),
@@ -176,10 +178,13 @@ class _UploadScreenState extends State<UploadScreen> {
     
     // Giả lập quá trình upload
     Future.delayed(Duration(seconds: 2), () {
+      if (!mounted) return;
       setState(() => _isUploading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Tài liệu đã được tải lên thành công!')),
       );
+      if (!mounted) return;
       Navigator.pop(context);
     });
   }

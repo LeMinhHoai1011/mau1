@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/router/router_helper.dart';
 import '../../providers/auth_provider.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -43,28 +44,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
 
     if (success && mounted) {
-      // ✅ Đăng ký thành công → LoginScreen (pushReplacement)
-      // KHÔNG auto login
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-      
-      // Hiển thị thông báo
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Đăng ký thành công, vui lòng đăng nhập'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      // ✅ Đăng ký thành công → LoginScreen (dùng RouterHelper)
+      // KHÔNG auto login, chỉ quay về login screen
+      RouterHelper.goLogin(context);
     } else {
       // Hiển thị lỗi
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Đăng ký thất bại'),
+            content: Text(authProvider.errorMessage.isNotEmpty ? authProvider.errorMessage : '\u0110ăng ký thất bại'),
             backgroundColor: Colors.red,
           ),
         );
@@ -140,7 +128,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 4,
                               ),
                             ],

@@ -1,4 +1,5 @@
 // Edit Profile Screen
+// 📝 Màn hình chỉnh sửa profile - Parameter: userId (optional) để edit user khác
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
@@ -6,7 +7,10 @@ import '../../providers/auth_provider.dart';
 import '../../data/models/user_model.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  /// 👤 User ID to edit (if null, edit current user)
+  final String? userId;
+
+  const EditProfileScreen({super.key, this.userId});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -28,6 +32,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController = TextEditingController(text: user?.email ?? '');
     _phoneController = TextEditingController(text: user?.phone ?? '');
     _bioController = TextEditingController(text: user?.bio ?? '');
+    
+    // 👤 Nếu userId được truyền, có thể load user khác (admin feature)
+    // if (widget.userId != null) {
+    //   _loadUserInfo(widget.userId!);
+    // }
   }
 
   @override
@@ -73,7 +82,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(authProvider.errorMessage ?? 'Cập nhật thất bại'),
+              content: Text(authProvider.errorMessage.isNotEmpty ? authProvider.errorMessage : 'C\u1eadp nhật thất bại'),
               backgroundColor: Colors.red,
             ),
           );

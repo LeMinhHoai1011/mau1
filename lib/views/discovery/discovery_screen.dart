@@ -5,6 +5,8 @@ import '../../core/constants/app_strings.dart';
 import '../home/widgets/trending_card.dart';
 
 class DiscoveryScreen extends StatefulWidget {
+  const DiscoveryScreen({super.key});
+
   @override
   State<DiscoveryScreen> createState() => _DiscoveryScreenState();
 }
@@ -103,7 +105,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
 
             // Documents List
             Text(
-              'Tài liệu (${selectedLanguage})',
+              'Tài liệu ($selectedLanguage)',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 12),
@@ -112,6 +114,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
               (index) => Column(
                 children: [
                   TrendingCard(
+                    documentId: 'disc_${selectedLanguage.toLowerCase()}_$index',
                     title: 'Hướng dẫn $selectedLanguage - Phần ${index + 1}',
                     author: 'Tác giả ${index + 1}',
                     rating: 4.5 + (index * 0.1),

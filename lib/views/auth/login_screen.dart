@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/router/router_helper.dart';
 import '../../providers/auth_provider.dart';
 import '../../app.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -36,16 +37,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success && mounted) {
       // Login thành công → MainApp (replace to remove back stack)
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainApp()),
-      );
+      RouterHelper.goMainApp(context);
     } else {
       // Hiển thị lỗi
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Đăng nhập thất bại'),
+            content: Text(authProvider.errorMessage.isNotEmpty ? authProvider.errorMessage : '\u0110ăng nhập thất bại'),
             backgroundColor: Colors.red,
           ),
         );
@@ -102,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 4,
                               ),
                             ],
@@ -120,13 +118,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       Expanded(
                         child: InkWell(
                           onTap: () {
-                            // Chuyển sang RegisterScreen (push)
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const RegisterScreen(),
-                              ),
-                            );
+                            // 🔀 Điều hướng sang Register Screen
+                            RouterHelper.goRegister(context);
                           },
                           child: const Padding(
                             padding: EdgeInsets.symmetric(vertical: 12),

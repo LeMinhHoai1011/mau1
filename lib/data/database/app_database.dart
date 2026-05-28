@@ -24,6 +24,7 @@ class AppDatabase {
       path,
       version: 1,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -50,6 +51,7 @@ class AppDatabase {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         email TEXT NOT NULL,
+        phone TEXT,
         profileImageUrl TEXT,
         bio TEXT,
         documentCount INTEGER DEFAULT 0,
@@ -77,11 +79,22 @@ class AppDatabase {
     ''');
   }
 
-  // Đóng database
-  Future<void> close() async {
-    final db = _database;
-    if (db != null) {
-      await db.close();
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    // Handle database migrations here
+    // Example: if (oldVersion < 2) { await db.execute('ALTER TABLE ...'); }
+  }
+  Future<Map<String, dynamic>?> getDocumentById(String id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'documents',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (maps.isNotEmpty) {
+      return maps.first;
     }
+    return null; // Trả về null nếu không tìm thấy ID tương ứng
   }
 }
+
