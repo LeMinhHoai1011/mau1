@@ -1,7 +1,9 @@
 // Library Screen - Quản lý tài liệu đã lưu/tải
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/router/router_helper.dart';
+import '../../providers/library_provider.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
@@ -17,6 +19,7 @@ class _LibraryScreenState extends State<LibraryScreen> with SingleTickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    Future.microtask(() => context.read<LibraryProvider>().loadLibrary());
   }
 
   @override
@@ -77,29 +80,35 @@ class _LibraryScreenState extends State<LibraryScreen> with SingleTickerProvider
   }
 
   Widget _buildDownloadedTab() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: 3,
-      itemBuilder: (context, index) => Card(
-        child: ListTile(
-          leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
-          title: Text('File PDF $index'),
-          subtitle: const Text('2.5MB • Tải ngày 20/10'),
-          trailing: IconButton(
-            icon: const Icon(Icons.folder_open),
-            onPressed: () {
-              RouterHelper.goFileManager(context);
-            },
-          ),
-          onTap: () {
-            RouterHelper.goDocumentDetail(
-              context,
-              documentId: 'downloaded_$index',
-              title: 'File PDF $index',
+    return Consumer<LibraryProvider>(
+      builder: (context, provider, _) {
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (provider.downloadedDocuments.isEmpty) {
+          return const Center(child: Text('Chưa có tài liệu đã tải'));
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: provider.downloadedDocuments.length,
+          itemBuilder: (context, index) {
+            final item = provider.downloadedDocuments[index];
+            final name = item.downloadPath.split(RegExp(r'[\\/]')).last;
+            return Card(
+              child: ListTile(
+                leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                subtitle: Text('Tải ngày ${item.downloadDate.split('T').first}'),
+                trailing: IconButton(
+                  icon: const Icon(Icons.folder_open),
+                  onPressed: () => RouterHelper.goFileManager(context),
+                ),
+                onTap: () => provider.openDownloadedDocument(item.downloadPath),
+              ),
             );
           },
-        ),
-      ),
+        );
+      },
     );
   }
 

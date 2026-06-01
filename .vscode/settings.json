@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "D:/mobile/mau1/linux"
+    "cmake.sourceDirectory": "D:/mobile/mau1/linux",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

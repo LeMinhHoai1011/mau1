@@ -1,7 +1,12 @@
 // Upload Document Screen
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../data/models/document_model.dart';
+import '../../providers/document_provider.dart';
 
 class UploadScreen extends StatefulWidget {
   const UploadScreen({super.key});
@@ -16,6 +21,7 @@ class _UploadScreenState extends State<UploadScreen> {
   final TextEditingController _tagsController = TextEditingController();
   
   String? _selectedCategory;
+  PlatformFile? _selectedFile;
   bool _isUploading = false;
 
   @override
@@ -61,10 +67,23 @@ class _UploadScreenState extends State<UploadScreen> {
                     ),
                   ),
                   SizedBox(height: 16),
+                  if (_selectedFile != null) ...[
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.description, color: AppColors.primary),
+                      title: Text(_selectedFile!.name),
+                      subtitle: Text(_formatBytes(_selectedFile!.size)),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => setState(() => _selectedFile = null),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   ElevatedButton.icon(
                     icon: Icon(Icons.folder_open),
-                    label: Text('Chọn file'),
-                    onPressed: () {},
+                    label: Text(_selectedFile == null ? 'Chọn file' : 'Đổi file'),
+                    onPressed: _pickFile,
                   ),
                 ],
               ),
@@ -167,26 +186,82 @@ class _UploadScreenState extends State<UploadScreen> {
   }
 
   void _uploadDocument() {
-    if (_titleController.text.isEmpty || _selectedCategory == null) {
+    if (_selectedFile == null ||
+        _titleController.text.trim().isEmpty ||
+        _selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vui lòng nhập tiêu đề và chọn danh mục')),
+        SnackBar(content: Text('Vui lòng chọn file, nhập tiêu đề và chọn danh mục')),
       );
       return;
     }
 
     setState(() => _isUploading = true);
     
-    // Giả lập quá trình upload
     Future.delayed(Duration(seconds: 2), () {
       if (!mounted) return;
-      setState(() => _isUploading = false);
+      _saveDocument();
+    });
+  }
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['pdf', 'doc', 'docx', 'ppt', 'pptx'],
+      withData: false,
+    );
+    if (result == null || result.files.isEmpty) return;
+
+    final file = result.files.single;
+    const maxBytes = 50 * 1024 * 1024;
+    if (file.size > maxBytes) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Tài liệu đã được tải lên thành công!')),
+        const SnackBar(content: Text('File vượt quá giới hạn 50MB')),
       );
-      if (!mounted) return;
-      Navigator.pop(context);
+      return;
+    }
+
+    setState(() {
+      _selectedFile = file;
+      if (_titleController.text.trim().isEmpty) {
+        _titleController.text = file.name.replaceFirst(RegExp(r'\.[^.]+$'), '');
+      }
     });
+  }
+
+  Future<void> _saveDocument() async {
+    final file = _selectedFile!;
+    final extension = file.extension?.toUpperCase() ?? 'PDF';
+    final document = DocumentModel(
+      id: 'upload_${DateTime.now().millisecondsSinceEpoch}',
+      title: _titleController.text.trim(),
+      author: 'Nguyễn Văn A',
+      category: _selectedCategory!,
+      description: _descriptionController.text.trim(),
+      rating: 0,
+      downloadCount: 0,
+      fileType: extension,
+      uploadDate: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+      thumbnailUrl: file.path,
+    );
+
+    final success = await context.read<DocumentProvider>().addDocument(document);
+    if (!mounted) return;
+    setState(() => _isUploading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success ? 'Tài liệu đã được tải lên thành công!' : 'Không thể lưu tài liệu',
+        ),
+      ),
+    );
+    if (success && mounted) Navigator.pop(context);
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
   @override

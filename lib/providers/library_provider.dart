@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import '../data/models/document_model.dart';
@@ -70,36 +69,21 @@ class LibraryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Request storage permission
-      var status = await Permission.storage.request();
-      if (!status.isGranted) {
-        _errorMessage = 'Storage permission denied';
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-
-      // Get download directory
-      Directory? downloadDir;
-      if (Platform.isAndroid) {
-        downloadDir = Directory('/storage/emulated/0/Download');
-      } else {
-        downloadDir = await getApplicationDocumentsDirectory();
-      }
+      final appDir = await getApplicationDocumentsDirectory();
+      final downloadDir = Directory('${appDir.path}/edushare_downloads');
 
       if (!downloadDir.existsSync()) {
         downloadDir.createSync(recursive: true);
       }
 
-      // Simulate download (in real app, download from URL)
       final fileName = '${document.title.replaceAll(' ', '_')}.${document.fileType.toLowerCase()}';
       final filePath = '${downloadDir.path}/$fileName';
 
-      // For demo, create empty file
       final file = File(filePath);
-      await file.writeAsString('Downloaded content for ${document.title}');
+      await file.writeAsString(
+        'EduShare\n\n${document.title}\nTác giả: ${document.author}\n\n${document.description}',
+      );
 
-      // Save to DB
       await addDownloadedDocument(document.id, filePath);
 
       _isLoading = false;
@@ -124,6 +108,22 @@ class LibraryProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
+    }
+  }
+
+  Future<bool> deleteDownloadedDocument(DownloadedDocumentModel document) async {
+    try {
+      final file = File(document.downloadPath);
+      if (await file.exists()) {
+        await file.delete();
+      }
+      await _downloadedDAO.deleteDownloadedDocument(document.id);
+      await loadLibrary();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
     }
   }
 }

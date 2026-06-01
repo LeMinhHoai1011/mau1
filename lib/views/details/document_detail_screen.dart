@@ -1,11 +1,14 @@
 /// Document Detail Screen - Enhanced with Material 3
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/constants/app_spacing.dart';
 import '../../core/router/router_helper.dart';
+import '../../data/models/document_model.dart';
+import '../../providers/library_provider.dart';
 
-class DocumentDetailScreen extends StatelessWidget {
+class DocumentDetailScreen extends StatefulWidget {
   final String documentId;
   final String? title;
   final String? imagePath;
@@ -20,6 +23,13 @@ class DocumentDetailScreen extends StatelessWidget {
     this.author = 'Nguyễn Văn A', 
     this.rating = 4.8,
   });
+
+  @override
+  State<DocumentDetailScreen> createState() => _DocumentDetailScreenState();
+}
+
+class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
+  bool _isSaved = false;
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +63,15 @@ class DocumentDetailScreen extends StatelessWidget {
                 onPressed: () {},
               ),
               IconButton(
-                icon: const Icon(Icons.bookmark_outline),
-                onPressed: () {},
+                icon: Icon(_isSaved ? Icons.bookmark : Icons.bookmark_outline),
+                onPressed: () {
+                  setState(() => _isSaved = !_isSaved);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(_isSaved ? 'Đã lưu tài liệu' : 'Đã bỏ lưu tài liệu'),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -68,7 +85,7 @@ class DocumentDetailScreen extends StatelessWidget {
                 children: [
                   // Title
                   Text(
-                    title ?? documentId,
+                    widget.title ?? widget.documentId,
                     style: Theme.of(context).textTheme.headlineLarge,
                   ),
                   const SizedBox(height: AppSpacing.lg),
@@ -86,7 +103,7 @@ class DocumentDetailScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: AppSpacing.xs),
                           Text(
-                            author,
+                            widget.author,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ],
@@ -97,7 +114,7 @@ class DocumentDetailScreen extends StatelessWidget {
                             children: List.generate(
                               5,
                               (index) => Icon(
-                                index < rating.toInt()
+                                index < widget.rating.toInt()
                                     ? Icons.star
                                     : Icons.star_outline,
                                 color: Colors.amber,
@@ -107,7 +124,7 @@ class DocumentDetailScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: AppSpacing.xs),
                           Text(
-                            '$rating (245 votes)',
+                            '${widget.rating} (245 votes)',
                             style: Theme.of(context).textTheme.labelSmall,
                           ),
                         ],
@@ -145,7 +162,7 @@ class DocumentDetailScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () => _downloadDocument(context),
                       icon: const Icon(Icons.download),
                       label: const Text(AppStrings.download),
                     ),
@@ -158,7 +175,7 @@ class DocumentDetailScreen extends StatelessWidget {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            RouterHelper.goBookLending(context, documentId: documentId);
+                            RouterHelper.goBookLending(context, documentId: widget.documentId);
                           },
                           icon: const Icon(Icons.menu_book, size: 16),
                           label: const Text('Mượn sách', style: TextStyle(fontSize: 11)),
@@ -174,8 +191,8 @@ class DocumentDetailScreen extends StatelessWidget {
                           onPressed: () {
                             RouterHelper.goReview(
                               context,
-                              documentId: documentId,
-                              documentTitle: title ?? documentId,
+                              documentId: widget.documentId,
+                              documentTitle: widget.title ?? widget.documentId,
                             );
                           },
                           icon: const Icon(Icons.star_outline, size: 16),
@@ -183,7 +200,7 @@ class DocumentDetailScreen extends StatelessWidget {
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             side: const BorderSide(color: Colors.amber),
-                            foregroundColor: Colors.amber.shade850,
+                            foregroundColor: Colors.amber.shade800,
                           ),
                         ),
                       ),
@@ -193,7 +210,7 @@ class DocumentDetailScreen extends StatelessWidget {
                           onPressed: () {
                             RouterHelper.goCommunityFeed(
                               context,
-                              communityId: title ?? documentId,
+                              communityId: widget.title ?? widget.documentId,
                             );
                           },
                           icon: const Icon(Icons.forum_outlined, size: 16),
@@ -225,6 +242,30 @@ class DocumentDetailScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _downloadDocument(BuildContext context) async {
+    final document = DocumentModel(
+      id: widget.documentId,
+      title: widget.title ?? widget.documentId,
+      author: widget.author,
+      category: 'Tài liệu',
+      description:
+          'Tài liệu được tải xuống từ EduShare để bạn có thể mở lại trong thư viện.',
+      rating: widget.rating,
+      downloadCount: 1200,
+      fileType: 'PDF',
+      uploadDate: DateTime.now().toIso8601String(),
+    );
+    final messenger = ScaffoldMessenger.of(context);
+    final success = await context.read<LibraryProvider>().downloadDocument(document);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          success ? 'Đã tải tài liệu vào thư viện' : 'Không thể tải tài liệu',
+        ),
       ),
     );
   }
